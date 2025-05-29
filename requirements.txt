@@ -1,0 +1,22 @@
+# Streamlit app and UI tools
+streamlit
+streamlit-image-coordinates
+
+# Image processing and scientific libraries
+opencv-python
+Pillow
+tifffile
+imageio
+imageio-ffmpeg
+matplotlib
+scikit-image
+scipy
+numba
+
+# Torch and deep learning
+torch
+torchvision
+torchaudio  # Optional, in case used internally or for completeness
+
+# Others
+numpy
