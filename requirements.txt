@@ -19,4 +19,5 @@ torchvision
 torchaudio  # Optional, in case used internally or for completeness
 
 # Others
-numpy
+numpy<2
+
