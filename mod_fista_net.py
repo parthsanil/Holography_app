@@ -5,7 +5,7 @@ from PIL import Image
 import torch.nn as nn  # In case your model class inherits from nn.Module
 import torch.nn.functional as F
 import os
-
+import requests
 
 # Weakened TransformBlock: smaller channels, shallower depth, no dropout
 class TransformBlock(nn.Module):
@@ -154,11 +154,22 @@ class FISTA_net(nn.Module):
         out_max = out.max()
         out = (out - out_min) / (out_max - out_min + 1e-8)
         return out, r_list
-        
-        
-def fista_netmodel(image_np,model_class, model_path):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+ 
+ 
+def download_model(model_url, local_path):
+    if not os.path.exists(local_path):
+        print(f"Downloading model from {model_url}...")
+        response = requests.get(model_url)
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+        print("Download complete.")
+    else:
+        print("Model already exists locally.")
 
+        
+def fista_netmodel(image_np,model_class, model_url, model_local_path="fista_model.pth"):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    download_model(model_url, model_local_path)
     # Ensure image is 2D grayscale
     if image_np.ndim == 3:
         image_np = image_np.squeeze()
@@ -178,7 +189,7 @@ def fista_netmodel(image_np,model_class, model_path):
 
     # Load model
     model = model_class(n_iter=1).to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(model_local_path, map_location=device))
     model.eval()
 
     # Inference

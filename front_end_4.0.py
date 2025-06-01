@@ -8,6 +8,9 @@ from streamlit_image_coordinates import streamlit_image_coordinates  # New impor
 import fSFPRNL as ff
 import testmodel as tt
 import mod_fista_net as mfn
+import requests
+import os
+
 st.set_page_config(layout="wide")
 
 # Add a button on the top right corner to open a PDF
@@ -18,7 +21,29 @@ header_col, button_col = st.columns([9, 1])
 
 with header_col:
     st.markdown("<h1 style='text-align: center;'>Digital In-Line Holographic Imaging</h1>", unsafe_allow_html=True)
-model = tt.load_model(r"D:\PRoject\MTP\Final_App\Model\mod_FISTA_Class.pth", num_classes=36)
+
+
+def download_model(model_url, local_path):
+    if not os.path.exists(local_path):
+        print(f"Downloading model from {model_url}...")
+        response = requests.get(model_url)
+        response.raise_for_status()
+        with open(local_path, 'wb') as f:
+            f.write(response.content)
+        print("Model downloaded.")
+    else:
+        print("Model already exists locally.")
+
+# Usage
+model_url = "https://raw.githubusercontent.com/parthsanil/Holography_app/main/Model/mod_FISTA_Class.pth"
+local_path = "FISTA_resnet.pth"
+
+download_model(model_url, local_path)
+
+
+# Now load the model
+model = tt.load_model(local_path, num_classes=36)
+
 with button_col:
     st.markdown(f"""
         <a href="{pdf_url}" target="_blank">
@@ -169,7 +194,7 @@ def recon_image(image, wavelength, pixel_size, start_z, end_z, noi, r_type, zss,
         if reconstruction_type == "FISTA" or reconstruction_type == "Both":
             
             #reconfI = ff.fSFPRNL(d, pixel_size_m, start_z_m+(z_step*max_indDFSA), wavelength_m, muTV, nIter, nFGP, 0.1,0.1)
-            reconfI=mfn.fista_netmodel(reconCR_Final,mfn.FISTA_net,r"D:\PRoject\MTP\Final_App\Model\Mod_FISTA_Net.pth")
+            reconfI=mfn.fista_netmodel(reconCR_Final,mfn.FISTA_net,"https://raw.githubusercontent.com/parthsanil/Holography_app/main/Model/Mod_FISTA_Net.pth")
             reconfI = (np.abs(reconfI) - np.min(np.abs(reconfI))) / (np.max(np.abs(reconfI)) - np.min(np.abs(reconfI)))
             #reconfI = (reconfI * 255).astype(np.uint8)  # Scale to 8-bit for proper saving
             _,species_p=tt.predict_image(reconfI, model)
